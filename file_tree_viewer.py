@@ -89,7 +89,7 @@ class FolderViewer(QWidget):
         self.text_edit.clear()
         self.label.setText("Drag & drop a folder or click 'Open Folder'")
 
-    #How the tree looks
+    #How the tree looks. Can't use hyphen - or underscore _ because they're common to file and directory names. 
     def build_tree(self, root_path, indent=""):
         lines = [os.path.basename(root_path) + "/\n"]
         try:
