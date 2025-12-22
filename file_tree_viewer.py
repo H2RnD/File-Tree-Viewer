@@ -4,7 +4,7 @@ import sys
 import os
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QTextEdit, QPushButton, QFileDialog
+    QLabel, QTextEdit, QPushButton, QFileDialog, QCheckBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
@@ -46,6 +46,11 @@ class FolderViewer(QWidget):
         btn_layout.addWidget(self.copy_btn)
         btn_layout.addWidget(self.clear_btn)
         btn_layout.addStretch()
+        
+        # Hidden files checkbox
+        self.hidden_checkbox = QCheckBox("Show hidden files/folders")
+        self.hidden_checkbox.stateChanged.connect(self.refresh_if_loaded)
+        btn_layout.addWidget(self.hidden_checkbox)
 
         # Assemble everything
         main_layout.addWidget(self.label)
@@ -88,12 +93,20 @@ class FolderViewer(QWidget):
         self.current_path = ""
         self.text_edit.clear()
         self.label.setText("Drag & drop a folder or click 'Open Folder'")
+        
+    def refresh_if_loaded(self):
+        """Reload the current folder if one is already loaded"""
+        if self.current_path and os.path.isdir(self.current_path):
+            self.load_folder(self.current_path)
 
-    #How the tree looks. Can't use hyphen - or underscore _ because they're common to file and directory names. 
+    #How the tree looks Can't use hyphen - or underscore _ because they're common to file and directory names. 
     def build_tree(self, root_path, indent=""):
         lines = [os.path.basename(root_path) + "/\n"]
         try:
             items = sorted(os.listdir(root_path))
+            # Filter hidden files/folders if checkbox is unchecked
+            if not self.hidden_checkbox.isChecked():
+                items = [item for item in items if not item.startswith('.')]
         except PermissionError:
             lines.append(indent + "    [Permission Denied]\n")
             return "".join(lines)
